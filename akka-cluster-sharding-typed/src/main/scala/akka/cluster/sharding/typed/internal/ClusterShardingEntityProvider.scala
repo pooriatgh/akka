@@ -8,18 +8,19 @@ import java.net.URLEncoder
 
 import scala.concurrent.Future
 
-import akka.actor.ActorPath
 import akka.actor.ActorRefProvider
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.Entity
 import akka.actor.typed.Entity.EntityCommand
 import akka.actor.typed.EntityContext
+import akka.actor.typed.EntityEnvelope
 import akka.actor.typed.EntityRef
 import akka.actor.typed.EntityTypeKey
 import akka.actor.typed.internal.InternalRecipientRef
 import akka.actor.typed.internal.entity.EntityProvider
 import akka.cluster.sharding.ShardRegion.HashCodeMessageExtractor
+import akka.cluster.sharding.ShardRegion.{ StartEntity => ClassicStartEntity }
 import akka.cluster.sharding.typed.ClusterShardingSettings
 import akka.cluster.sharding.typed.ShardingMessageExtractor
 import akka.cluster.sharding.typed.internal.{ EntityTypeKeyImpl => ShardedEntityTypeKeyImpl }
@@ -106,7 +107,12 @@ private object EntityAdapter {
 
     override def typeKey: EntityTypeKey[M] = toEntityTypeKey(delegate.typeKey)
 
-    override def tell(msg: M): Unit = delegate.tell(msg)
+    override def tell(msg: M): Unit =
+      msg match {
+        case EntityEnvelope.StartEntity(entityId) =>
+          delegate.tell(ClassicStartEntity(entityId).asInstanceOf[M])
+        case _ => delegate.tell(msg)
+      }
     override def ask[Res](f: ActorRef[Res] => M)(implicit timeout: Timeout): Future[Res] =
       delegate.ask(f)(timeout)
 
@@ -121,5 +127,10 @@ private object EntityAdapter {
 
     override def refPrefix: String =
       URLEncoder.encode(s"${typeKey.name}-$entityId", ByteString.UTF_8)
+
+    override def toString: String = delegate.toString
+
+    override def hashCode(): Int = delegate.hashCode()
+    override def equals(obj: Any): Boolean = delegate.equals(obj)
   }
 }
