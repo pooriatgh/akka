@@ -1,0 +1,23 @@
+/*
+ * Copyright (C) 2014-2021 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+syntax = "proto2";
+
+package akka.actor.typed;
+
+option java_package = "akka.actor.typed.internal.protobuf";
+option optimize_for = SPEED;
+
+
+// keep this in sync with Payload from ContainerFormats.proto in akka-remote
+message Payload {
+  required bytes enclosedMessage = 1;
+  required int32 serializerId = 2;
+  optional bytes messageManifest = 4;
+}
+
+message EntityEnvelope {
+  required string entityId = 1;
+  required Payload message = 2;
+}

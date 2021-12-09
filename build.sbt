@@ -476,7 +476,10 @@ lazy val testkit = akkaModule("akka-testkit")
   .settings(initialCommands += "import akka.testkit._")
 
 lazy val actorTyped = akkaModule("akka-actor-typed")
-  .dependsOn(actor, slf4j)
+  .dependsOn(
+    actor, 
+    slf4j,     
+    protobufV3 % "provided")
   .settings(AutomaticModuleName.settings("akka.actor.typed"))
   .settings(Dependencies.actorTyped)
   .settings(OSGi.actorTyped)
@@ -488,7 +491,8 @@ lazy val actorTyped = akkaModule("akka-actor-typed")
       import scala.concurrent.duration._
       import akka.util.Timeout
       implicit val timeout = Timeout(5.seconds)
-    """)
+    """)  
+  .settings(Protobuf.settings)
   .enablePlugins(Jdk9)
 
 lazy val persistenceTyped = akkaModule("akka-persistence-typed")

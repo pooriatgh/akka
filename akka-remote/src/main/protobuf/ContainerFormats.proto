@@ -47,6 +47,7 @@ message Option {
   optional Payload value = 1;
 }
 
+// keep this in sync with Payload from EntityMessages.proto in akka-actor-typed
 message Payload {
   required bytes enclosedMessage = 1;
   required int32 serializerId = 2;
