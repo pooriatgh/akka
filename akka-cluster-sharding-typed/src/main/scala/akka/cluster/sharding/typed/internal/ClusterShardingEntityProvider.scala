@@ -22,6 +22,7 @@ import akka.actor.typed.internal.entity.EntityProvider
 import akka.cluster.sharding.ShardRegion.HashCodeMessageExtractor
 import akka.cluster.sharding.ShardRegion.{ StartEntity => ClassicStartEntity }
 import akka.cluster.sharding.typed.ClusterShardingSettings
+import akka.cluster.sharding.typed.ShardingEnvelope
 import akka.cluster.sharding.typed.ShardingMessageExtractor
 import akka.cluster.sharding.typed.internal.{ EntityTypeKeyImpl => ShardedEntityTypeKeyImpl }
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
@@ -111,8 +112,12 @@ private object EntityAdapter {
       msg match {
         case EntityEnvelope.StartEntity(entityId) =>
           delegate.tell(ClassicStartEntity(entityId).asInstanceOf[M])
+        case entityEnv: EntityEnvelope[_] =>
+          val shardEnv = new ShardingEnvelope(entityEnv.entityId, entityEnv.message)
+          delegate.tell(shardEnv.asInstanceOf[M])
         case _ => delegate.tell(msg)
       }
+
     override def ask[Res](f: ActorRef[Res] => M)(implicit timeout: Timeout): Future[Res] =
       delegate.ask(f)(timeout)
 
